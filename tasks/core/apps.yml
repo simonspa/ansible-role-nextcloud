@@ -2,7 +2,7 @@
 
 # Read all apps shipped by Nextcloud itself
 - name: Read shipped apps
-  command: ./occ app:list --shipped=true --no-warnings --output=json
+  command: php occ app:list --shipped=true --no-warnings --output=json
   args:
     chdir: "{{ nextcloud_installation_dir }}"
   become: true
@@ -16,7 +16,7 @@
 
 # Read all external apps which have been installed by in addition
 - name: Read installed external apps
-  command: ./occ app:list --shipped=false --no-warnings --output=json
+  command: php occ app:list --shipped=false --no-warnings --output=json
   args:
     chdir: "{{ nextcloud_installation_dir }}"
   become: true
@@ -81,10 +81,11 @@
     - item.name not in (nextcloud_installed_apps.enabled
       | combine(nextcloud_installed_apps.disabled))
     - item.state | default('enabled') != 'absent'
+  notify: nextcloud set file permissions
 
 # Update list of available apps after installation and removal:
 - name: Re-read installed external apps
-  command: ./occ app:list --shipped=false --no-warnings --output=json
+  command: php occ app:list --shipped=false --no-warnings --output=json
   args:
     chdir: "{{ nextcloud_installation_dir }}"
   become: true
@@ -108,12 +109,13 @@
   register: result
   failed_when: result.stdout is search('not installed') or result is failed
   changed_when: result.stdout is search('updated') and result is not failed
+  notify: nextcloud set file permissions
 
 # Enable all apps from the configured list which
 # - are not yet enabled and
 # - have their state set to "enabled"
 - name: Enable apps
-  command: ./occ app:enable "{{ item.name }}"
+  command: php occ app:enable "{{ item.name }}"
   args:
     chdir: "{{ nextcloud_installation_dir }}"
   become: true
@@ -128,7 +130,7 @@
 # - are not yet disabled and
 # - have their state set to "disabled"
 - name: Disable apps
-  command: ./occ app:disable "{{ item.name }}"
+  command: php occ app:disable "{{ item.name }}"
   args:
     chdir: "{{ nextcloud_installation_dir }}"
   become: true
