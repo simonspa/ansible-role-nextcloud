@@ -7,7 +7,7 @@
   become: true
   become_user: "{{ nextcloud_file_owner }}"
   register: _result
-  changed_when: _result.stdout | regex_search('^Nextcloud .* is available')
+  changed_when: _result.stdout is match('Nextcloud .* is available')
   failed_when: _result is failed
 
 - name: Make files writable by php user
@@ -17,7 +17,7 @@
     owner: "{{ nextcloud_file_owner }}"
     group: "{{ nextcloud_file_owner }}"
     recurse: true
-  when: _result.stdout | regex_search('^Nextcloud .* is available')
+  when: _result.stdout is match('Nextcloud .* is available')
   # Make sure to correctly set file permissions after the installation
   notify: nextcloud set file permissions
 
@@ -32,7 +32,7 @@
     - _result is failed
     - _result.stdout is not search('Update successful')
   # We only check for an upgrade of Nextcloud itself, not of the apps
-  when: _result.stdout | regex_search('^Nextcloud .* is available')
+  when: _result.stdout is match('Nextcloud .* is available')
 
 - name: Check if upgrade is needed
   command: php occ status
